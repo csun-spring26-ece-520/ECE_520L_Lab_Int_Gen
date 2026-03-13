@@ -57,13 +57,11 @@ static void IntrGen_GenerateInterrupt(void)
 
 static void PrintRegisters(void)
 {
-    xil_printf("REG[0x%02X] FPGA_REV = 0x%08X\r\n", FPGA_REV_REG, (uint32_t)IntrGen_ReadReg(FPGA_REV_REG));
+    xil_printf("[Offset: 0x%02X] INT_EN_REG = 0x%08X\r\n", INT_EN_REG, (uint32_t)IntrGen_ReadReg(INT_EN_REG));
 
-    xil_printf("REG[0x%02X] INT_EN = 0x%08X\r\n", INT_EN_REG, (uint32_t)IntrGen_ReadReg(INT_EN_REG));
+    xil_printf("[Offset: 0x%02X] INT_STAT_REG = 0x%08X\r\n", INT_STAT_REG, (uint32_t)IntrGen_ReadReg(INT_STAT_REG));
 
-    xil_printf("REG[0x%02X] INT_STAT = 0x%08X\r\n", INT_STAT_REG, (uint32_t)IntrGen_ReadReg(INT_STAT_REG));
-
-    xil_printf("REG[0x%02X] GEN_INT = 0x%08X\r\n", GEN_INT_REG, (uint32_t)IntrGen_ReadReg(GEN_INT_REG));
+    xil_printf("[Offset: 0x%02X] GEN_INT_REG = 0x%08X\r\n", GEN_INT_REG, (uint32_t)IntrGen_ReadReg(GEN_INT_REG));
 }
 
 static void IntrGen_Isr(void *CallbackRef)
@@ -79,7 +77,7 @@ static void IntrGen_Isr(void *CallbackRef)
 
     IntrGen_ClearInterrupt();
 
-    xil_printf("ISR: Interrupt clear command issued.\r\n");
+    xil_printf("ISR: Interrupt clear command issued.\r\n\n");
 }
 
 static int SetupInterruptSystem(XScuGic *IntcInstancePtr)
@@ -100,15 +98,9 @@ static int SetupInterruptSystem(XScuGic *IntcInstancePtr)
         return XST_FAILURE;
     }
 
-    XScuGic_SetPriorityTriggerType(IntcInstancePtr,
-                                   INTR_GEN_INTR_ID,
-                                   0xA0,
-                                   0x3);
+    XScuGic_SetPriorityTriggerType(IntcInstancePtr, INTR_GEN_INTR_ID, 0xA0, 0x3);
 
-    status = XScuGic_Connect(IntcInstancePtr,
-                             INTR_GEN_INTR_ID,
-                             (Xil_InterruptHandler)IntrGen_Isr,
-                             NULL);
+    status = XScuGic_Connect(IntcInstancePtr, INTR_GEN_INTR_ID, (Xil_InterruptHandler)IntrGen_Isr, NULL);
 
     if (status != XST_SUCCESS)
     {
@@ -119,9 +111,7 @@ static int SetupInterruptSystem(XScuGic *IntcInstancePtr)
 
     Xil_ExceptionInit();
 
-    Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT,
-                                 (Xil_ExceptionHandler)XScuGic_InterruptHandler,
-                                 IntcInstancePtr);
+    Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT, (Xil_ExceptionHandler)XScuGic_InterruptHandler, IntcInstancePtr);
 
     Xil_ExceptionEnable();
 
@@ -135,7 +125,7 @@ int main(void)
 
     init_platform();
 
-    xil_printf("Start of Interrupt Generator Test\r\n");
+    xil_printf("Start of Interrupt Generator Test\r\n\n");
 
     xil_printf("Base Address: 0x%08lX\r\n", (uint32_t)INTR_GEN_BASEADDR);
     xil_printf("Interrupt ID: %d\r\n", (uint32_t)INTR_GEN_INTR_ID);
@@ -148,19 +138,20 @@ int main(void)
         return -1;
     }
 
-    xil_printf("GIC setup complete\r\n");
+    xil_printf("GIC setup complete\r\n\n");
 
+    xil_printf("[Offset: 0x%02X] FPGA_REV_REG = 0x%08X\r\n", FPGA_REV_REG, (uint32_t)IntrGen_ReadReg(FPGA_REV_REG));
     PrintRegisters();
 
-    xil_printf("Clearing int_en...\r\n");
+    xil_printf("\nClearing int_en...\r\n");
     IntrGen_DisableInterrupt();
-    xil_printf("[INT_EN_REG] INT_EN = 0x%08X\r\n", INT_EN_REG, (uint32_t)IntrGen_ReadReg(INT_EN_REG));
+    xil_printf("[Offset: 0x%02X] INT_EN_REG = 0x%08X\r\n", INT_EN_REG, (uint32_t)IntrGen_ReadReg(INT_EN_REG));
 
-    xil_printf("Setting int_en...\r\n");
+    xil_printf("\nSetting int_en...\r\n");
     IntrGen_EnableInterrupt();
-    xil_printf("[INT_EN_REG] INT_EN = 0x%08X\r\n", INT_EN_REG, (uint32_t)IntrGen_ReadReg(INT_EN_REG));
+    xil_printf("[Offset: 0x%02X] INT_EN_REG = 0x%08X\r\n", INT_EN_REG, (uint32_t)IntrGen_ReadReg(INT_EN_REG));
 
-    xil_printf("Generating an interrupt...\r\n");
+    xil_printf("\nGenerating an interrupt...\r\n\n");
     g_interrupt_received = 0;
     IntrGen_GenerateInterrupt();
 
