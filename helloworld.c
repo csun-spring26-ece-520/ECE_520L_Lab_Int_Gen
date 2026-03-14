@@ -121,13 +121,14 @@ static int SetupInterruptSystem(XScuGic *IntcInstancePtr)
 int main(void)
 {
     int status;
+    char cmd;
     volatile uint32_t timeout;
 
     init_platform();
 
-    xil_printf("Start of Interrupt Generator Test\r\n\n");
+    xil_printf("Start of Interrupt Generator Initial Test\r\n\n");
 
-    xil_printf("Base Address: 0x%08lX\r\n", (uint32_t)INTR_GEN_BASEADDR);
+    xil_printf("Base Address: 0x%08X\r\n", (uint32_t)INTR_GEN_BASEADDR);
     xil_printf("Interrupt ID: %d\r\n", (uint32_t)INTR_GEN_INTR_ID);
 
     status = SetupInterruptSystem(&IntcInst);
@@ -175,8 +176,32 @@ int main(void)
 
     xil_printf("Interrupt Count: %d\r\n", (uint32_t)g_interrupt_count);
 
-    xil_printf("End of Interrupt Generator Test\r\n");
+    xil_printf("End of Interrupt Generator Initial Test\r\n\n");
 
-    cleanup_platform();
+    while(1)
+    {
+        xil_printf("Enter command: ");
+
+        do
+        {
+            cmd = inbyte();
+        } while ((cmd == '\r') || (cmd == '\n'));
+    	xil_printf("%c\r\n", cmd);
+
+    	switch(cmd)
+    	{
+			case '5':
+			{
+				PrintRegisters();
+				xil_printf("Interrupt Count = %d\r\n\n", g_interrupt_count);
+				break;
+			}
+
+			default:
+			{
+				xil_printf("Invalid command.\r\n\n");
+			}
+    	}
+    }
     return 0;
 }
